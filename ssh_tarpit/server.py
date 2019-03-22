@@ -2,7 +2,7 @@ import asyncio
 import random
 import logging
 
-class EternalServer:
+class TarpitServer:
     SHUTDOWN_TIMEOUT = 5
 
     def __init__(self, *, address=None, port=2222, dualstack=False, loop=None):
@@ -40,7 +40,7 @@ class EternalServer:
 #        else:
 #            return task.result()
 #
-    async def handler(_reader, writer):
+    async def handler(self, _reader, writer):
         try:
             while not self._run.done():
                 await asyncio.sleep(2)  # TODO: config
@@ -50,8 +50,8 @@ class EternalServer:
             pass  # TODO: logging
 
     async def start(self):
-        self._server = await asyncio.start_server(handler,
+        self._server = await asyncio.start_server(self.handler,
                                                   self._address,
                                                   self._port)  # TODO: dualstack
-        self._run = asyncio.ensure_future(self._server.server_forever())
+        self._run = asyncio.ensure_future(self._server.serve_forever())
         self._logger.info("Server ready.")

@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import signal
+import logging
 from functools import partial
 
 from .server import TarpitServer
@@ -66,7 +67,7 @@ async def amain(args, loop):
     logger = logging.getLogger('MAIN')
     server = TarpitServer(address=args.bind_address,
                           port=args.bind_port,
-                          dualstack=args.dualstack
+                          dualstack=args.dualstack,
                           loop=loop)
     logger.debug("Starting server...")
     await server.start()
