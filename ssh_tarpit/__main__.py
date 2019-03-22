@@ -47,3 +47,56 @@ def parse_args():
     return parser.parse_args()
 
 
+def exit_handler(exit_event, signum, frame):
+    logger = logging.getLogger('MAIN')
+    if exit_event.is_set():
+        logger.warning("Got second exit signal! Terminating hard.")
+        os._exit(1)
+    else:
+        logger.warning("Got first exit signal! Terminating gracefully.")
+        exit_event.set()
+
+
+async def heartbeat():
+    while True:
+        await asyncio.sleep(1)
+
+
+async def amain(args, loop):
+    logger = logging.getLogger('MAIN')
+    server = TarpitServer(address=args.bind_address,
+                          port=args.bind_port,
+                          dualstack=args.dualstack
+                          loop=loop)
+    logger.debug("Starting server...")
+    await server.setup()
+    logger.info("Server startup completed.")
+
+    exit_event = asyncio.Event(loop=loop)
+    beat = asyncio.ensure_future(heartbeat(), loop=loop)
+    sig_handler = partial(exit_handler, exit_event)
+    signal.signal(signal.SIGTERM, sig_handler)
+    signal.signal(signal.SIGINT, sig_handler)
+    await exit_event.wait()
+    beat.cancel()
+    logger.info("Eventloop interrupted. Shutting down server...")
+    await server.stop()
+
+
+def main():
+    args = parse_args()
+    logger = setup_logger('MAIN', args.verbosity)
+    setup_logger(TarpitServer.__name__, args.verbosity)
+
+    if not args.disable_uvloop:
+        res = enable_uvloop()
+        logger.debug("uvloop" + ("" if res else " NOT") + " activated.")
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(amain(args, loop))
+    loop.close()
+    logger.info("Server stopped.")
+
+
+if __name__ == '__main__':
+    main()
