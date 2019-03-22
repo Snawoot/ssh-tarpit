@@ -69,7 +69,7 @@ async def amain(args, loop):
                           dualstack=args.dualstack
                           loop=loop)
     logger.debug("Starting server...")
-    await server.setup()
+    await server.start()
     logger.info("Server startup completed.")
 
     exit_event = asyncio.Event(loop=loop)
@@ -78,8 +78,8 @@ async def amain(args, loop):
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     await exit_event.wait()
-    beat.cancel()
     logger.info("Eventloop interrupted. Shutting down server...")
+    beat.cancel()
     await server.stop()
 
 
