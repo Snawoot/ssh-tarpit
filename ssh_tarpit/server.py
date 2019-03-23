@@ -11,8 +11,8 @@ class TarpitServer:
         self._address = address
         self._port = port
         self._dualstack = dualstack
-        #self._int_fut = self._loop.create_future()
-        #self._shutdown = asyncio.ensure_future(self._int_fut, loop=self._loop)
+        self._int_event = asyncio.Event(loop=loop)
+        #self._shutdown = asyncio.ensure_future(self._int_event, loop=loop)
 
     async def stop(self):
         try:
@@ -42,7 +42,7 @@ class TarpitServer:
 #
     async def handler(self, _reader, writer):
         try:
-            while not self._run.done():
+            while True: # not self._int_event.is_set():
                 await asyncio.sleep(2)  # TODO: config
                 writer.write(b'%x\r\n' % random.randrange(2**32))  # TODO: modes?
                 await writer.drain() # TODO; recv() discard?
