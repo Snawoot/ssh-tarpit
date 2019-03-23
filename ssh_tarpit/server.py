@@ -33,6 +33,9 @@ class TarpitServer:
 
     async def handler(self, reader, writer):
         writer.transport.pause_reading()
+        sock = writer.transport.get_extra_info('socket')
+        if sock is not None:
+            sock.shutdown(socket.SHUT_RD)
         peer_addr = writer.transport.get_extra_info('peername')
         self._logger.info("Client %s connected", str(peer_addr))
         try:
