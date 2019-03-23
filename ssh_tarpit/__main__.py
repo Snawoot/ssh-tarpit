@@ -28,7 +28,7 @@ def parse_args():
         return fvalue
 
     parser = argparse.ArgumentParser(
-        description="SSH tarpit that slowly sends and endless banner",
+        description="SSH tarpit that slowly sends an endless banner",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("--disable-uvloop",
