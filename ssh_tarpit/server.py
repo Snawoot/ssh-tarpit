@@ -6,12 +6,18 @@ import logging
 class TarpitServer:
     SHUTDOWN_TIMEOUT = 5
 
-    def __init__(self, *, address=None, port=2222, dualstack=False, loop=None):
+    def __init__(self, *,
+                 address,
+                 port,
+                 dualstack=False,
+                 interval=2.,
+                 loop=None):
         self._loop = loop if loop is not None else asyncio.get_event_loop()
         self._logger = logging.getLogger(self.__class__.__name__)
         self._address = address
         self._port = port
         self._dualstack = dualstack
+        self._interval = interval
         self._children = weakref.WeakSet()
 
     async def stop(self):
@@ -22,13 +28,10 @@ class TarpitServer:
                 task.cancel()
             await asyncio.wait(self._children)
 
-    async def run(self):
-        await self._run
-
     async def handler(self, _reader, writer):
         try:
             while True:
-                await asyncio.sleep(2)  # TODO: config
+                await asyncio.sleep(self._interval)
                 writer.write(b'%x\r\n' % random.randrange(2**32))  # TODO: modes?
                 await writer.drain() # TODO; recv() discard?
         except ConnectionResetError:

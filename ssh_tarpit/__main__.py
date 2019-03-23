@@ -20,6 +20,13 @@ def parse_args():
                 "%s is not a valid port number" % value)
         return ivalue
 
+    def check_positive_float(value):
+        fvalue = float(value)
+        if fvalue <= 0:
+            raise argparse.ArgumentTypeError(
+                "%s is not a valid positive float" % value)
+        return fvalue
+
     parser = argparse.ArgumentParser(
         description="SSH tarpit that slowly sends and endless banner",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -32,6 +39,10 @@ def parse_args():
                         type=LogLevel.__getitem__,
                         choices=list(LogLevel),
                         default=LogLevel.info)
+    parser.add_argument("-i", "--interval",
+                        help="interval between writes in seconds",
+                        type=check_positive_float,
+                        default=2.)
 
     listen_group = parser.add_argument_group('listen options')
     listen_group.add_argument("-a", "--bind-address",
@@ -60,7 +71,7 @@ def exit_handler(exit_event, signum, frame):
 
 async def heartbeat():
     while True:
-        await asyncio.sleep(1)
+        await asyncio.sleep(.5)
 
 
 async def amain(args, loop):
@@ -68,6 +79,7 @@ async def amain(args, loop):
     server = TarpitServer(address=args.bind_address,
                           port=args.bind_port,
                           dualstack=args.dualstack,
+                          interval=args.interval,
                           loop=loop)
     logger.debug("Starting server...")
     await server.start()
