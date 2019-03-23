@@ -21,15 +21,13 @@ Synopsis:
 
 ```
 $ ssh-tarpit --help
-usage: ssh-tarpit [-h] [--disable-uvloop] [-v {debug,info,warn,error,fatal}]
-                  [-i INTERVAL] [-a BIND_ADDRESS] [-p BIND_PORT] [-D]
+usage: ssh-tarpit [-h] [-v {debug,info,warn,error,fatal}] [-i INTERVAL]
+                  [-a BIND_ADDRESS] [-p BIND_PORT] [-D]
 
 SSH tarpit that slowly sends an endless banner
 
 optional arguments:
   -h, --help            show this help message and exit
-  --disable-uvloop      do not use uvloop even if it is available (default:
-                        False)
   -v {debug,info,warn,error,fatal}, --verbosity {debug,info,warn,error,fatal}
                         logging verbosity (default: info)
   -i INTERVAL, --interval INTERVAL
@@ -42,4 +40,5 @@ listen options:
                         bind port (default: 2222)
   -D, --dualstack       force dualstack socket mode. Sets socket IPV6_V6ONLY
                         option to 0 (default: False)
+
 ```
