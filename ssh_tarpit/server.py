@@ -1,4 +1,5 @@
 import asyncio
+import socket
 import weakref
 import random
 import logging
@@ -42,8 +43,14 @@ class TarpitServer:
             self._children.add(
                 self._loop.create_task(self.handler(reader, writer)))
 
-        self._server = await asyncio.start_server(_spawn,
-                                                  self._address,
-                                                  self._port)  # TODO: dualstack
+        if self._dualstack:
+            sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+            sock.bind(('::', self._port))
+            self._server = await asyncio.start_server(_spawn, sock=sock)
+        else:
+            self._server = await asyncio.start_server(_spawn,
+                                                      self._address,
+                                                      self._port)
         self._run = asyncio.ensure_future(self._server.serve_forever())
         self._logger.info("Server ready.")
