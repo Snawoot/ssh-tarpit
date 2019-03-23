@@ -25,18 +25,22 @@ class TarpitServer:
         self._server.close()
         await self._server.wait_closed()
         if self._children:
+            self._logger.debug("Cancelling %d client handlers...",
+                               len(self._children))
             for task in self._children:
                 task.cancel()
             await asyncio.wait(self._children)
 
     async def handler(self, _reader, writer):
+        peer_addr = writer.transport.get_extra_info('peername')
+        self._logger.info("Client %s connected", str(peer_addr))
         try:
             while True:
                 await asyncio.sleep(self._interval)
-                writer.write(b'%x\r\n' % random.randrange(2**32))  # TODO: modes?
-                await writer.drain() # TODO; recv() discard?
+                writer.write(b'%x\r\n' % random.randrange(2**32))
+                await writer.drain()
         except ConnectionResetError:
-            pass  # TODO: logging
+            self._logger.info("Client %s disconnected", str(peer_addr))
 
     async def start(self):
         def _spawn(reader, writer):
