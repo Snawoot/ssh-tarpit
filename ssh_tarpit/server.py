@@ -37,7 +37,7 @@ class TarpitServer:
         try:
             while True:
                 await asyncio.sleep(self._interval)
-                writer.write(b'%x\r\n' % random.randrange(2**32))
+                writer.write(b'%.8x\r\n' % random.randrange(2**32))
                 await writer.drain()
         except ConnectionResetError:
             self._logger.info("Client %s disconnected", str(peer_addr))
