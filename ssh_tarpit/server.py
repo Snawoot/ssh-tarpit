@@ -1,4 +1,5 @@
 import asyncio
+import weakref
 import random
 import logging
 
@@ -11,38 +12,22 @@ class TarpitServer:
         self._address = address
         self._port = port
         self._dualstack = dualstack
-        self._int_event = asyncio.Event(loop=loop)
-        #self._shutdown = asyncio.ensure_future(self._int_event, loop=loop)
+        self._children = weakref.WeakSet()
 
     async def stop(self):
-        try:
-            self._run.cancel()
-        except asyncio.InvalidStateError:
-            pass
-        else:
-            self._server.close()
-            await self._server.wait_closed()
+        self._server.close()
+        await self._server.wait_closed()
+        if self._children:
+            for task in self._children:
+                task.cancel()
+            await asyncio.wait(self._children)
 
     async def run(self):
         await self._run
 
-#    async def _guarded_run(self, awaitable):
-#        task = asyncio.ensure_future(awaitable)
-#        try:
-#            _, pending = await asyncio.wait((self._shutdown, task),
-#                                            return_when=asyncio.FIRST_COMPLETED)
-#        except asyncio.CancelledError:
-#            task.cancel()
-#            raise
-#        if task in pending:
-#            task.cancel()
-#            return None
-#        else:
-#            return task.result()
-#
     async def handler(self, _reader, writer):
         try:
-            while True: # not self._int_event.is_set():
+            while True:
                 await asyncio.sleep(2)  # TODO: config
                 writer.write(b'%x\r\n' % random.randrange(2**32))  # TODO: modes?
                 await writer.drain() # TODO; recv() discard?
@@ -50,7 +35,11 @@ class TarpitServer:
             pass  # TODO: logging
 
     async def start(self):
-        self._server = await asyncio.start_server(self.handler,
+        def _spawn(reader, writer):
+            self._children.add(
+                self._loop.create_task(self.handler(reader, writer)))
+
+        self._server = await asyncio.start_server(_spawn,
                                                   self._address,
                                                   self._port)  # TODO: dualstack
         self._run = asyncio.ensure_future(self._server.serve_forever())
