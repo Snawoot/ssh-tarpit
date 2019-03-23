@@ -31,7 +31,8 @@ class TarpitServer:
                 task.cancel()
             await asyncio.wait(self._children)
 
-    async def handler(self, _reader, writer):
+    async def handler(self, reader, writer):
+        writer.transport.pause_reading()
         peer_addr = writer.transport.get_extra_info('peername')
         self._logger.info("Client %s connected", str(peer_addr))
         try:
