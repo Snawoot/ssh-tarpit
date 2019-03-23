@@ -50,7 +50,7 @@ class TarpitServer:
         if self._dualstack:
             sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
             sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
-            sock.bind(('::', self._port))
+            sock.bind((self._address, self._port))
             self._server = await asyncio.start_server(_spawn, sock=sock)
         else:
             self._server = await asyncio.start_server(_spawn,

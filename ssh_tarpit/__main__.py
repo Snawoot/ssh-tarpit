@@ -91,7 +91,7 @@ async def amain(args, loop):
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     await exit_event.wait()
-    logger.info("Eventloop interrupted. Shutting down server...")
+    logger.debug("Eventloop interrupted. Shutting down server...")
     beat.cancel()
     await server.stop()
 
