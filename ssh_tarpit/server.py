@@ -56,5 +56,4 @@ class TarpitServer:
             self._server = await asyncio.start_server(_spawn,
                                                       self._address,
                                                       self._port)
-        self._run = asyncio.ensure_future(self._server.serve_forever())
         self._logger.info("Server ready.")
