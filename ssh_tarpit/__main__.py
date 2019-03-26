@@ -8,7 +8,7 @@ from functools import partial
 
 from .server import TarpitServer
 from .constants import LogLevel
-from .utils import setup_logger
+from .utils import setup_logger, enable_uvloop
 
 
 def parse_args():
@@ -31,6 +31,9 @@ def parse_args():
         description="SSH tarpit that slowly sends an endless banner",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+    parser.add_argument("--disable-uvloop",
+                        help="do not use uvloop even if it is available",
+                        action="store_true")
     parser.add_argument("-v", "--verbosity",
                         help="logging verbosity",
                         type=LogLevel.__getitem__,
@@ -97,6 +100,10 @@ def main():
     args = parse_args()
     logger = setup_logger('MAIN', args.verbosity)
     setup_logger(TarpitServer.__name__, args.verbosity)
+
+    if not args.disable_uvloop:
+        res = enable_uvloop()
+        logger.info("uvloop" + ("" if res else " NOT") + " activated.")
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(amain(args, loop))

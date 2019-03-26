@@ -13,3 +13,13 @@ def setup_logger(name, verbosity):
                                            '%Y-%m-%d %H:%M:%S'))
     logger.addHandler(handler)
     return logger
+
+
+def enable_uvloop():
+    try:
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    except ImportError:
+        return False
+    else:
+        return True

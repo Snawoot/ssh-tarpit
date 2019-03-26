@@ -35,7 +35,14 @@ class TarpitServer:
         writer.transport.pause_reading()
         sock = writer.transport.get_extra_info('socket')
         if sock is not None:
-            sock.shutdown(socket.SHUT_RD)
+            try:
+                sock.shutdown(socket.SHUT_RD)
+            except TypeError:
+                direct_sock = socket.socket(sock.family, sock.type, sock.proto, sock.fileno())
+                try:
+                    direct_sock.shutdown(socket.SHUT_RD)
+                finally:
+                    direct_sock.detach()
         peer_addr = writer.transport.get_extra_info('peername')
         self._logger.info("Client %s connected", str(peer_addr))
         try:
