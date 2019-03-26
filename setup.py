@@ -6,7 +6,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='ssh_tarpit',
-      version='0.2.1',
+      version='0.2.2',
       description="SSH tarpit that slowly sends an endless banner",
       url='https://github.com/Snawoot/ssh-tarpit',
       author='Vladislav Yarmak',
