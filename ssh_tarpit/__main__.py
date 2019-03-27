@@ -103,7 +103,9 @@ def main():
 
     if not args.disable_uvloop:
         res = enable_uvloop()
-        logger.info("uvloop" + ("" if res else " NOT") + " activated.")
+    else:
+        res = False
+    logger.info("uvloop" + ("" if res else " NOT") + " activated.")
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(amain(args, loop))
