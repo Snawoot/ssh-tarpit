@@ -50,9 +50,12 @@ class TarpitServer:
                 await asyncio.sleep(self._interval)
                 writer.write(b'%.8x\r\n' % random.randrange(2**32))
                 await writer.drain()
-        except (ConnectionResetError, RuntimeError, TimeoutError):
-            pass
+        except (ConnectionResetError, RuntimeError, TimeoutError) as e:
+            self._logger.debug('Terminating handler coro with error: %s',
+                               str(e))
         except OSError as e:
+            self._logger.debug('Terminating handler coro with error: %s',
+                               str(e))
             if e.errno == 107:
                 pass
             else:
