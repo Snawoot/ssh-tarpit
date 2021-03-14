@@ -32,7 +32,8 @@ optional arguments:
                         logging verbosity (default: info)
   -i INTERVAL, --interval INTERVAL
                         interval between writes in seconds (default: 2.0)
-
+  -f LOGFILE, --logfile LOGFILE
+                        logfile to write to (default: None)
 listen options:
   -a BIND_ADDRESS, --bind-address BIND_ADDRESS
                         bind address (default: 127.0.0.1)

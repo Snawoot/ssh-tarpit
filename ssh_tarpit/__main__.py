@@ -43,6 +43,9 @@ def parse_args():
                         help="interval between writes in seconds",
                         type=check_positive_float,
                         default=2.)
+    parser.add_argument("-f", "--logfile",
+                        help="file to log to",
+                        default=None)
 
     listen_group = parser.add_argument_group('listen options')
     listen_group.add_argument("-a", "--bind-address",
@@ -98,8 +101,8 @@ async def amain(args, loop):
 
 def main():
     args = parse_args()
-    logger = setup_logger('MAIN', args.verbosity)
-    setup_logger(TarpitServer.__name__, args.verbosity)
+    logger = setup_logger('MAIN', args.verbosity, args.logfile)
+    setup_logger(TarpitServer.__name__, args.verbosity,args.logfile)
 
     if not args.disable_uvloop:
         res = enable_uvloop()
