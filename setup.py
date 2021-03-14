@@ -22,6 +22,7 @@ setup(name='ssh_tarpit',
       entry_points={
           'console_scripts': [
               'ssh-tarpit=ssh_tarpit.__main__:main',
+              'ssh-tarpit-log2csv=ssh_tarpit.log2csv:main',
           ],
       },
       classifiers=[
