@@ -41,5 +41,4 @@ while True:
 logfile.close()
 
 for conn in connected:
-  print("%s%s%s"%(conn['datetime'].strftime(csv_timeformat), csv_field_seperator,conn['connected']))
-
+    print("%s%s%s"%(conn['datetime'].strftime(csv_timeformat), csv_field_seperator,conn['connected']))
