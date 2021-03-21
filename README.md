@@ -9,10 +9,34 @@ SSH tarpit that slowly sends an endless banner. [Original idea by Chris Wellons]
 
 ## Installation
 
+
+### From PyPI
+
 Standard Python package installation. This package is available on PyPI:
 
 ```
 pip3 install ssh-tarpit
+```
+
+### From source
+
+Run within source directory:
+
+```
+pip3 install .
+```
+
+### Docker
+
+Run:
+
+```
+docker run -d \
+    --security-opt no-new-privileges \
+    -p 22:2222 \
+    --restart unless-stopped \
+    --name ssh-tarpit \
+    yarmak/ssh-tarpit
 ```
 
 ## Usage
