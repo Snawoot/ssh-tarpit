@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import contextlib
 import signal
 import logging
 from functools import partial
@@ -52,8 +53,9 @@ def parse_args():
                         type=check_positive_float,
                         default=2.)
     parser.add_argument("-f", "--logfile",
+                        nargs="*",
                         help="file to log to",
-                        default=None)
+                        default=[None])
 
     listen_group = parser.add_argument_group('listen options')
     listen_group.add_argument("-a", "--bind-address",
@@ -154,9 +156,15 @@ async def amain(args, loop):
 
 def main():
     args = parse_args()
-    with AsyncLoggingHandler(raw_log_handler(args.verbosity, args.logfile)) as loghandler:
-        logger = setup_logger('MAIN', args.verbosity, loghandler)
-        setup_logger(TarpitServer.__name__, args.verbosity, loghandler)
+    with contextlib.ExitStack() as stack:
+        loghandlers = [stack.enter_context(AsyncLoggingHandler(
+            raw_log_handler(args.verbosity, logfile))) for logfile in args.logfile]
+        if not loghandlers:
+            loghandlers.append(logging.NullHandler())
+
+        for loghandler in loghandlers:
+            logger = setup_logger('MAIN', args.verbosity, loghandler)
+            setup_logger(TarpitServer.__name__, args.verbosity, loghandler)
 
         if not args.disable_uvloop:
             res = enable_uvloop()
