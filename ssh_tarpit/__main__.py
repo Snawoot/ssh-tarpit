@@ -8,7 +8,13 @@ from functools import partial
 
 from .server import TarpitServer
 from .constants import LogLevel
-from .utils import setup_logger, enable_uvloop
+from .utils import (
+    raw_log_handler,
+    setup_logger,
+    enable_uvloop,
+    AsyncLoggingHandler,
+    RotateHandlers,
+)
 
 
 def parse_args():
@@ -101,19 +107,20 @@ async def amain(args, loop):
 
 def main():
     args = parse_args()
-    logger = setup_logger('MAIN', args.verbosity, args.logfile)
-    setup_logger(TarpitServer.__name__, args.verbosity,args.logfile)
+    with AsyncLoggingHandler(raw_log_handler(args.verbosity, args.logfile)) as loghandler:
+        logger = setup_logger('MAIN', args.verbosity, loghandler)
+        setup_logger(TarpitServer.__name__, args.verbosity, loghandler)
 
-    if not args.disable_uvloop:
-        res = enable_uvloop()
-    else:
-        res = False
-    logger.info("uvloop" + ("" if res else " NOT") + " activated.")
+        if not args.disable_uvloop:
+            res = enable_uvloop()
+        else:
+            res = False
+        logger.info("uvloop" + ("" if res else " NOT") + " activated.")
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(amain(args, loop))
-    loop.close()
-    logger.info("Server stopped.")
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(amain(args, loop))
+        loop.close()
+        logger.info("Server stopped.")
 
 
 if __name__ == '__main__':
