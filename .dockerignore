@@ -1,0 +1,6 @@
+venv
+pkg_venv
+build
+dist
+*.egg-info
+Dockerfile
