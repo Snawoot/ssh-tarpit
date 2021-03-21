@@ -14,6 +14,8 @@ from .utils import (
     enable_uvloop,
     AsyncLoggingHandler,
     RotateHandlers,
+    is_nt,
+    Heartbeat,
 )
 
 
@@ -78,9 +80,52 @@ def exit_handler(exit_event, signum, frame):
         exit_event.set()
 
 
-async def heartbeat():
-    while True:
-        await asyncio.sleep(.5)
+def rotate_sig_handler(rotate_event, signum, frame):
+    logger = logging.getLogger('MAIN')
+    logger.debug("Received log rotation signal.")
+    rotate_event.set()
+
+
+class RotateEventHandler:
+    def __init__(self, event, loop=None):
+        self._evt = event
+        self._task = None
+        self._logger = logging.getLogger('MAIN')
+        self._loop = loop if loop is not None else asyncio.get_event_loop()
+
+    async def worker(self):
+        def fire_rotation():
+            try:
+                RotateHandlers().fire()
+            except KeyboardInterrupt:
+                raise
+            except Exception as exc:
+                self._logger.exception("Log rotation failed: %s", str(exc))
+        while True:
+            await self._evt.wait()
+            self._logger.debug("Log rotation scheduled via thread pool.")
+            await self._loop.run_in_executor(None, fire_rotation)
+            self._logger.info("Log rotated.")
+            self._evt.clear()
+
+    async def __aenter__(self):
+        return await self.start()
+
+    async def start(self):
+        if self._task is None:
+            self._task = asyncio.ensure_future(self.worker(), loop=self._loop)
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        return await self.stop()
+
+    async def stop(self):
+        self._task.cancel()
+        while not self._task.done():
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
 
 
 async def amain(args, loop):
@@ -95,13 +140,15 @@ async def amain(args, loop):
     logger.info("Server startup completed.")
 
     exit_event = asyncio.Event(loop=loop)
-    beat = asyncio.ensure_future(heartbeat(), loop=loop)
-    sig_handler = partial(exit_handler, exit_event)
-    signal.signal(signal.SIGTERM, sig_handler)
-    signal.signal(signal.SIGINT, sig_handler)
-    await exit_event.wait()
-    logger.debug("Eventloop interrupted. Shutting down server...")
-    beat.cancel()
+    rotate_event = asyncio.Event(loop=loop)
+    async with Heartbeat(), RotateEventHandler(rotate_event):
+        sig_handler = partial(exit_handler, exit_event)
+        signal.signal(signal.SIGTERM, sig_handler)
+        signal.signal(signal.SIGINT, sig_handler)
+        if not is_nt():
+            signal.signal(signal.SIGHUP, partial(rotate_sig_handler, rotate_event))
+        await exit_event.wait()
+        logger.debug("Eventloop interrupted. Shutting down server...")
     await server.stop()
 
 
