@@ -54,8 +54,10 @@ def parse_args():
                         default=2.)
     parser.add_argument("-f", "--logfile",
                         nargs="*",
-                        help="file to log to",
-                        default=[None])
+                        help="file(s) to log to. Empty string argument "
+                        "represents stderr. Flag without arguments disables "
+                        "logging completely. Default is stderr only.",
+                        default=[""])
 
     listen_group = parser.add_argument_group('listen options')
     listen_group.add_argument("-a", "--bind-address",
