@@ -21,19 +21,25 @@ Synopsis:
 
 ```
 $ ssh-tarpit --help
-usage: ssh-tarpit [-h] [-v {debug,info,warn,error,fatal}] [-i INTERVAL]
-                  [-a BIND_ADDRESS] [-p BIND_PORT] [-D]
+usage: ssh-tarpit [-h] [--disable-uvloop] [-v {debug,info,warn,error,fatal}]
+                  [-i INTERVAL] [-f [LOGFILE [LOGFILE ...]]] [-a BIND_ADDRESS]
+                  [-p BIND_PORT] [-D]
 
 SSH tarpit that slowly sends an endless banner
 
 optional arguments:
   -h, --help            show this help message and exit
+  --disable-uvloop      do not use uvloop even if it is available (default:
+                        False)
   -v {debug,info,warn,error,fatal}, --verbosity {debug,info,warn,error,fatal}
                         logging verbosity (default: info)
   -i INTERVAL, --interval INTERVAL
                         interval between writes in seconds (default: 2.0)
-  -f LOGFILE, --logfile LOGFILE
-                        logfile to write to (default: None)
+  -f [LOGFILE [LOGFILE ...]], --logfile [LOGFILE [LOGFILE ...]]
+                        file(s) to log to. Empty string argument represents
+                        stderr. Flag without arguments disables logging
+                        completely. Default is stderr only. (default: [''])
+
 listen options:
   -a BIND_ADDRESS, --bind-address BIND_ADDRESS
                         bind address (default: 127.0.0.1)
