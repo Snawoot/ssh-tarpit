@@ -143,8 +143,8 @@ async def amain(args, loop):
     await server.start()
     logger.info("Server startup completed.")
 
-    exit_event = asyncio.Event(loop=loop)
-    rotate_event = asyncio.Event(loop=loop)
+    exit_event = asyncio.Event()
+    rotate_event = asyncio.Event()
     async with Heartbeat(), RotateEventHandler(rotate_event):
         sig_handler = partial(exit_handler, exit_event)
         signal.signal(signal.SIGTERM, sig_handler)
